@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.3] - 2026-07-05
+
+Add Streonor S10 Pro device support
+
 ## [0.10.2] - 2026-05-01
 
 Fix macos compile
