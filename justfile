@@ -4,6 +4,10 @@ release: bump package tag
 
 package: build-linux build-mac build-win collect zip
 
+install-local: build-linux collect zip
+    rm -rf "${XDG_CONFIG_HOME:-$HOME/.config}/opendeck/plugins/{{id}}"
+    unzip -q build/opendeck-akp05.plugin.zip -d "${XDG_CONFIG_HOME:-$HOME/.config}/opendeck/plugins"
+
 bump next=`git cliff --bumped-version | tr -d "v"`:
     git diff --cached --exit-code
 
