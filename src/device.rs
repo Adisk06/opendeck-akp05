@@ -33,6 +33,18 @@ pub async fn device_task(candidate: CandidateDevice, token: CancellationToken) {
             device.set_led_colors(&colors).await?;
         }
 
+        if let Some(enabled) = led.vibration {
+            if candidate.kind.supports_vibration() {
+                log::info!("Setting vibration: {}", enabled);
+                set_vibration(&device, enabled).await?;
+            } else {
+                log::warn!(
+                    "Ignoring vibration config: {} does not support it",
+                    candidate.kind.human_name()
+                );
+            }
+        }
+
         Ok(device)
     }
     .await;
@@ -108,6 +120,18 @@ pub async fn handle_error(id: &String, err: MirajazzError) -> bool {
     log::info!("Finished clean-up for {}", id);
 
     false
+}
+
+/// Byte layout reverse-engineered from a USBPcap capture of the official Mirabox
+/// app toggling vibration on N4 Pro E. Values per Mirabox's `streamdockconfigcmd.h`.
+async fn set_vibration(device: &Device, enabled: bool) -> Result<(), MirajazzError> {
+    let vib = if enabled { 0x11 } else { 0xFF };
+    let mut buf = vec![
+        0x00, 0x43, 0x52, 0x54, 0x00, 0x00, // report ID + CRT header
+        0x51, 0x55, 0x43, 0x4d, 0x44, // "QUCMD"
+        0x1f, 0x11, 0x00, vib, 0x00, 0x11, // 6-byte N4Pro config array
+    ];
+    device.write_extended_data(&mut buf).await
 }
 
 pub async fn connect(candidate: &CandidateDevice) -> Result<Device, MirajazzError> {

@@ -16,6 +16,10 @@ pub struct LedConfig {
     /// LED brightness 0-100
     #[serde(default = "default_brightness")]
     pub brightness: u8,
+    /// `None` — no vibration command sent; `Some(true|false)` — enable/disable
+    /// on connect. Only applied on devices whose firmware supports it.
+    #[serde(default)]
+    pub vibration: Option<bool>,
 }
 
 fn default_brightness() -> u8 {
@@ -49,6 +53,7 @@ pub fn load() -> LedConfig {
     let no_change = LedConfig {
         mode: None,
         brightness: default_brightness(),
+        vibration: None,
     };
 
     let Some(path) = dirs_config_path() else {

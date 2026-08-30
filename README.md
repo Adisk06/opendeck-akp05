@@ -68,6 +68,16 @@ colors = [
 
 When OpenDeck is being terminated, a disconnect signal is sent to the device, which results in a hardcoded red for all knobs.
 
+## Vibration (N4 Pro / N4 Pro E / VSDInside N4 Pro)
+
+Some N4 Pro-family devices vibrate on key press. To disable (or explicitly enable), add to the same config file:
+
+```toml
+vibration = false # true = on, false = off; omit to leave the device's current setting alone
+```
+
+The setting is applied on each connect. Devices that don't expose the config command in their firmware will log a warning and skip it.
+
 ## Adding new devices
 
 Read [this wiki page](https://github.com/4ndv/opendeck-akp03/wiki/Adding-support-for-new-devices) for more information.
