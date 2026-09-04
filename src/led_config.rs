@@ -1,5 +1,4 @@
 use serde::Deserialize;
-use std::fs;
 
 type Rgb = [u8; 3];
 
@@ -16,10 +15,15 @@ pub struct LedConfig {
     /// LED brightness 0-100
     #[serde(default = "default_brightness")]
     pub brightness: u8,
-    /// `None` — no vibration command sent; `Some(true|false)` — enable/disable
-    /// on connect. Only applied on devices whose firmware supports it.
-    #[serde(default)]
-    pub vibration: Option<bool>,
+}
+
+impl Default for LedConfig {
+    fn default() -> Self {
+        Self {
+            mode: None,
+            brightness: default_brightness(),
+        }
+    }
 }
 
 fn default_brightness() -> u8 {
@@ -27,7 +31,6 @@ fn default_brightness() -> u8 {
 }
 
 /// Extends `colors` to `count` entries by repeating the last value.
-/// Returns `None` if the input is empty.
 fn fill_colors(colors: &mut Vec<Rgb>, count: usize) {
     if let Some(&last) = colors.last() {
         colors.resize(count, last);
@@ -35,9 +38,9 @@ fn fill_colors(colors: &mut Vec<Rgb>, count: usize) {
 }
 
 impl LedConfig {
-    /// Normalizes the config after deserialization:
-    /// fills missing LED colors and clears the mode if colors is empty.
-    fn resolved_colors(mut self) -> Self {
+    /// Normalizes the config after deserialization: fills missing LED colors and
+    /// clears the mode if colors is empty.
+    pub fn resolved_colors(mut self) -> Self {
         if let Some(LedMode::Static { ref mut colors }) = self.mode {
             if colors.is_empty() {
                 self.mode = None;
@@ -47,32 +50,4 @@ impl LedConfig {
         }
         self
     }
-}
-
-pub fn load() -> LedConfig {
-    let no_change = LedConfig {
-        mode: None,
-        brightness: default_brightness(),
-        vibration: None,
-    };
-
-    let Some(path) = dirs_config_path() else {
-        return no_change;
-    };
-
-    let Ok(contents) = fs::read_to_string(&path) else {
-        return no_change;
-    };
-
-    match toml::from_str::<LedConfig>(&contents) {
-        Ok(cfg) => cfg.resolved_colors(),
-        Err(e) => {
-            log::warn!("Failed to parse LED config, making no LED changes: {e}");
-            no_change
-        }
-    }
-}
-
-fn dirs_config_path() -> Option<std::path::PathBuf> {
-    Some(dirs::config_dir()?.join("opendeck-akp05").join("leds.toml"))
 }
