@@ -22,7 +22,4 @@ tokio-util = { version = "0.7.15", features = ["full"] }
 toml = "0.8"
 
 [patch.crates-io]
-# Temporarily points at the vibration branch of the fork until the corresponding
-# mirajazz PR is merged. Revert to `https://github.com/ambiso/mirajazz.git`
-# (default branch) once merged.
-mirajazz = { git = "https://github.com/jazerix/mirajazz.git", branch = "vibration" }
+mirajazz = { git = "https://github.com/ambiso/mirajazz.git" }
