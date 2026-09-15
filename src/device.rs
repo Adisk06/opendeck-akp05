@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use data_url::DataUrl;
-use image::load_from_memory_with_format;
+use image::{DynamicImage, GenericImageView, load_from_memory_with_format};
 use mirajazz::{device::Device, error::MirajazzError, state::DeviceStateUpdate};
 use openaction::{OUTBOUND_EVENT_MANAGER, SetImageEvent};
 use tokio::time::interval;
@@ -264,21 +264,23 @@ pub async fn handle_set_image(device: &Device, evt: SetImageEvent) -> Result<(),
 
             let image = load_from_memory_with_format(body.as_slice(), image::ImageFormat::Jpeg)?;
 
-            device
-                .set_button_image(
-                    position,
-                    if is_encoder {
-                        Kind::from_vid_pid(device.vid, device.pid)
-                            .unwrap()
-                            .touch_image_format()
-                    } else {
-                        Kind::from_vid_pid(device.vid, device.pid)
-                            .unwrap()
-                            .image_format()
-                    },
-                    image,
-                )
-                .await?;
+            let kind = Kind::from_vid_pid(device.vid, device.pid).unwrap();
+            let format = if is_encoder {
+                kind.touch_image_format()
+            } else {
+                kind.image_format()
+            };
+            // The panel conversion stretches into `format.size`, which distorts
+            // dial images (OpenDeck renders 200x100, the N4 strip is 176x112):
+            // pre-fit encoder images preserving aspect ratio, so that stretch
+            // becomes a no-op.
+            let image = if is_encoder {
+                fit_into(image, format.size)
+            } else {
+                image
+            };
+
+            device.set_button_image(position, format, image).await?;
             device.flush().await?;
         }
         (Some(position), None) => {
@@ -294,4 +296,31 @@ pub async fn handle_set_image(device: &Device, evt: SetImageEvent) -> Result<(),
     }
 
     Ok(())
+}
+
+/// Fit `image` inside `size` preserving aspect ratio, centered on black.
+/// `set_button_image` stretches into the panel format, which distorts images
+/// whose aspect differs (e.g. OpenDeck's 200x100 dial image on the 176x112
+/// touch strip); pre-fitting here keeps shapes intact at the cost of small
+/// letterbox bars.
+fn fit_into(image: DynamicImage, size: (usize, usize)) -> DynamicImage {
+    let (ws, hs) = (size.0 as u32, size.1 as u32);
+    let (w, h) = image.dimensions();
+    if w == ws && h == hs {
+        return image;
+    }
+    let scale = (ws as f32 / w as f32).min(hs as f32 / h as f32);
+    let nw = ((w as f32 * scale).round() as u32).clamp(1, ws);
+    let nh = ((h as f32 * scale).round() as u32).clamp(1, hs);
+    let fitted = image
+        .resize_exact(nw, nh, image::imageops::FilterType::Nearest)
+        .into_rgb8();
+    let mut canvas = image::RgbImage::from_pixel(ws, hs, image::Rgb([0, 0, 0]));
+    image::imageops::overlay(
+        &mut canvas,
+        &fitted,
+        ((ws - nw) / 2) as i64,
+        ((hs - nh) / 2) as i64,
+    );
+    DynamicImage::ImageRgb8(canvas)
 }
