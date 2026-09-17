@@ -10,7 +10,7 @@ pub enum LedMode {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct LedConfig {
-    /// `None` — no LED command will be sent, device keeps its current state
+    /// `None` - no LED command will be sent, device keeps its current state
     pub mode: Option<LedMode>,
     /// LED brightness 0-100
     #[serde(default = "default_brightness")]

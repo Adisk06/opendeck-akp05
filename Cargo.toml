@@ -1,6 +1,6 @@
 [package]
 name = "opendeck-akp05"
-version = "0.10.3"
+version = "0.11.0"
 edition = "2024"
 license = "GPL-3.0"
 
@@ -14,7 +14,7 @@ image = { version = "0.25.6", default-features = false, features = [
   "jpeg",
 ] }
 log = "0.4.27"
-mirajazz = "0.9.0"
+mirajazz = "0.16.2"
 openaction = "1.1.5"
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1.44.2", features = ["full"] }

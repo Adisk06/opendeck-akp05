@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0] - 2026-09-17
+
+Add VSDInside N4 support
+
+Fix encoder image stretch
+
+Add vibration config support
+
 ## [0.10.3] - 2026-07-05
 
 Add Streonor S10 Pro device support
