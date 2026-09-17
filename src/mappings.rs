@@ -222,6 +222,14 @@ impl Kind {
     pub fn supports_both_encoder_states(&self) -> bool {
         false
     }
+
+    /// Whether the device firmware exposes the `QUCMD` config command with an
+    /// `EnableVibration` slot. Confirmed by USB capture on N4 Pro E; other
+    /// N4Pro-family devices share the same firmware config layout per
+    /// Mirabox's official SDK (`streamdockN4Pro.h`).
+    pub fn supports_vibration(&self) -> bool {
+        matches!(self, Self::N4Pro | Self::N4ProE | Self::VsdN4Pro)
+    }
 }
 
 #[derive(Debug, Clone)]

@@ -8,7 +8,7 @@ use tokio::time::interval;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    DEVICES, TOKENS, led_config,
+    DEVICES, TOKENS, config, led_config,
     mappings::{
         COL_COUNT, CandidateDevice, DEVICE_TYPE, ENCODER_COUNT, KEY_COUNT, Kind, ROW_COUNT,
     },
@@ -26,11 +26,23 @@ pub async fn device_task(candidate: CandidateDevice, token: CancellationToken) {
         device.clear_all_button_images().await?;
         device.flush().await?;
 
-        let led = led_config::load();
-        log::info!("Applying LED config: {:?}", led);
-        if let Some(led_config::LedMode::Static { colors }) = led.mode {
-            device.set_led_brightness(led.brightness).await?;
+        let cfg = config::load();
+        log::info!("Applying config: {:?}", cfg);
+        if let Some(led_config::LedMode::Static { colors }) = cfg.leds.mode {
+            device.set_led_brightness(cfg.leds.brightness).await?;
             device.set_led_colors(&colors).await?;
+        }
+
+        if let Some(enabled) = cfg.vibration {
+            if candidate.kind.supports_vibration() {
+                log::info!("Setting vibration: {}", enabled);
+                device.set_vibration(enabled).await?;
+            } else {
+                log::warn!(
+                    "Ignoring vibration config: {} does not support it",
+                    candidate.kind.human_name()
+                );
+            }
         }
 
         Ok(device)

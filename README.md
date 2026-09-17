@@ -37,28 +37,29 @@ Requires OpenDeck 2.5.0 or newer
 3. Download [udev rules](./40-opendeck-akp05.rules) and install them by copying into `/etc/udev/rules.d/` and running `sudo udevadm control --reload-rules`
 4. Unplug and plug again the device, restart OpenDeck
 
-## Knob LED configuration
+## Configuration
 
-By default no LED commands are sent, so the device keeps its own built-in effect.
-
-To configure the knob LEDs, create `~/.config/opendeck-akp05/leds.toml`.
-(Windows: `%APPDATA%\opendeck-akp05\leds.toml`, macOS: `~/Library/Application Support/opendeck-akp05/leds.toml`)
-
-All LEDs the same color:
+Create `~/.config/opendeck-akp05/config.toml`.
+(Windows: `%APPDATA%\opendeck-akp05\config.toml`, macOS: `~/Library/Application Support/opendeck-akp05/config.toml`)
 
 ```toml
+# N4 Pro-family only. Omit to leave the device's current setting alone.
+vibration = false
+
+[leds]
 brightness = 100 # 0-100
 
-[mode.Static]
-colors = [[255, 0, 128]] # RGB
+[leds.mode.Static]
+colors = [[255, 0, 128]] # RGB — one entry per knob, missing entries repeat the last value
 ```
 
-Each LED a different color:
+By default no LED commands are sent, so the device keeps its own built-in effect. Each LED a different color:
 
 ```toml
-brightness = 100 # 0-100
+[leds]
+brightness = 100
 
-[mode.Static]
+[leds.mode.Static]
 colors = [
     [255, 0,   0  ], # RGB knob 1
     [0,   255, 0  ], # RGB knob 2
@@ -68,6 +69,21 @@ colors = [
 ```
 
 When OpenDeck is being terminated, a disconnect signal is sent to the device, which results in a hardcoded red for all knobs.
+
+### `leds.toml` override
+
+An optional `~/.config/opendeck-akp05/leds.toml` in the top-level LED schema (without the `[leds]` prefix) overrides just the LED section of `config.toml`:
+
+```toml
+brightness = 100
+
+[mode.Static]
+colors = [[255, 0, 128]]
+```
+
+### Vibration
+
+Some N4 Pro-family devices (N4 Pro, N4 Pro E, VSDInside N4 Pro) vibrate on key press. Set `vibration = false` in `config.toml` to silence it, `true` to explicitly enable it, or omit the field to leave the current setting alone. The setting is applied on each connect. Devices that don't expose the config command in their firmware will log a warning and skip it.
 
 ## Adding new devices
 

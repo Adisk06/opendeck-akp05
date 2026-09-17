@@ -535,7 +535,7 @@ dependencies = [
 [[package]]
 name = "mirajazz"
 version = "0.9.0"
-source = "git+https://github.com/ambiso/mirajazz.git#4d355c8704cf1283cf2e3e3adb1dfe117e786b19"
+source = "git+https://github.com/ambiso/mirajazz.git#16872785d3b6945d62e233cbe8c0dc2bf6356b8d"
 dependencies = [
  "async-hid",
  "futures-lite",
