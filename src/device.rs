@@ -324,7 +324,7 @@ fn fit_into(image: DynamicImage, size: (usize, usize)) -> DynamicImage {
     let nw = ((w as f32 * scale).round() as u32).clamp(1, ws);
     let nh = ((h as f32 * scale).round() as u32).clamp(1, hs);
     let fitted = image
-        .resize_exact(nw, nh, image::imageops::FilterType::Nearest)
+        .resize_exact(nw, nh, image::imageops::FilterType::Lanczos3)
         .into_rgb8();
     let mut canvas = image::RgbImage::from_pixel(ws, hs, image::Rgb([0, 0, 0]));
     image::imageops::overlay(
